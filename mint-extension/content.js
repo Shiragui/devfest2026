@@ -99,7 +99,7 @@
         position: fixed;
         inset: 0;
         z-index: -1;
-        background: rgba(167, 243, 208, 0.5) !important;
+        background: rgba(0, 0, 0, 0.4) !important;
       }
       #lens-results-popup .lens-results-header {
         padding: 16px 20px;
