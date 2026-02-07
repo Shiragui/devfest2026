@@ -9,9 +9,12 @@
   const STYLE_ID = 'lens-capture-styles';
 
   function injectStyles() {
-    if (document.getElementById(STYLE_ID)) return;
-    const style = document.createElement('style');
-    style.id = STYLE_ID;
+    let style = document.getElementById(STYLE_ID);
+    if (!style) {
+      style = document.createElement('style');
+      style.id = STYLE_ID;
+      document.head.appendChild(style);
+    }
     style.textContent = `
       #${OVERLAY_ID} {
         position: fixed;
@@ -160,7 +163,6 @@
       #lens-results-popup .lens-product-links a.lens-link-google { background: #4285f4; }
       #lens-results-popup .lens-no-products { font-size: 13px; color: #6b7280; padding: 8px 0; }
     `;
-    document.head.appendChild(style);
   }
 
   function createOverlay() {
@@ -188,6 +190,7 @@
   }
 
   function showResultsPopup(description, similarProducts, webhookError) {
+    injectStyles();
     const id = 'lens-results-popup';
     let popup = document.getElementById(id);
     if (popup) popup.remove();
