@@ -37,14 +37,16 @@ async function getStoredConfig() {
     'dedalusApiKey',
     'geminiApiKey',
     'webhookUrl',
-    'serpapiKey'
+    'serpapiKey',
+    'imgbbApiKey'
   ]);
   return {
     visionProvider: out.visionProvider || 'dedalus',
     dedalusApiKey: out.dedalusApiKey || '',
     geminiApiKey: out.geminiApiKey || '',
     webhookUrl: out.webhookUrl || '',
-    serpapiKey: out.serpapiKey || ''
+    serpapiKey: out.serpapiKey || '',
+    imgbbApiKey: out.imgbbApiKey || ''
   };
 }
 
@@ -101,7 +103,15 @@ async function handleAnalyzeAndSend(payload) {
 
   let similarProducts = [];
   try {
-    similarProducts = await getSimilarProducts(apiKey, provider, description, config.serpapiKey);
+    similarProducts = await getSimilarProducts(
+      apiKey,
+      provider,
+      description,
+      config.serpapiKey,
+      config.imgbbApiKey,
+      croppedBase64,
+      mimeType
+    );
   } catch (_) {
     // Non-fatal: still return description
   }
@@ -223,15 +233,21 @@ async function callGeminiVision(apiKey, base64Image, mimeType) {
 }
 
 /**
- * Fetch real similar products from Google Shopping via SerpAPI.
+ * Find visually similar products via reverse image search (Google Lens).
+ * Uses the actual image to find products that look like it, not just same category.
  * Returns array of { name, price, link, image, source }.
- * Falls back to AI-generated search links if SerpAPI key is not set.
+ * Falls back to AI-generated search links if keys are not set.
  */
-async function getSimilarProducts(apiKey, provider, description, serpapiKey) {
-  // If SerpAPI key is set, fetch real product data from Google Shopping
-  if (serpapiKey && serpapiKey.trim()) {
+async function getSimilarProducts(apiKey, provider, description, serpapiKey, imgbbApiKey, croppedBase64, mimeType) {
+  // Reverse image search: need both SerpAPI + ImgBB to upload image and call Google Lens
+  if (serpapiKey?.trim() && imgbbApiKey?.trim() && croppedBase64) {
     try {
-      const products = await fetchShoppingProducts(serpapiKey.trim(), description, apiKey, provider);
+      const products = await fetchVisuallySimilarProducts(
+        serpapiKey.trim(),
+        imgbbApiKey.trim(),
+        croppedBase64,
+        mimeType
+      );
       if (products.length > 0) return products;
     } catch (err) {
       // Fall through to AI fallback on error
@@ -253,33 +269,51 @@ async function getSimilarProducts(apiKey, provider, description, serpapiKey) {
   return [{ name: 'Search similar products', search_query: searchQuery, fallback: true }];
 }
 
-async function fetchShoppingProducts(serpapiKey, description, apiKey, provider) {
-  const prompt = `The user selected an image region described as: "${description}". Reply with ONLY a short 2-5 word search query to find similar products to buy (e.g. "wireless bluetooth mouse" or "ceramic coffee mug"). No other text.`;
-  let searchQuery;
-  if (provider === 'gemini') {
-    searchQuery = (await callGeminiText(apiKey, prompt)).trim();
-  } else {
-    searchQuery = (await callDedalusText(apiKey, prompt)).trim();
-  }
-  if (!searchQuery) searchQuery = description.split(/[.!?]/)[0].trim().slice(0, 50) || 'similar product';
+async function uploadImageToImgBB(apiKey, base64Image) {
+  const form = new FormData();
+  form.append('image', base64Image);
 
-  const params = new URLSearchParams({
-    engine: 'google_shopping',
-    q: searchQuery,
-    api_key: serpapiKey
+  const res = await fetch('https://api.imgbb.com/1/upload?key=' + encodeURIComponent(apiKey), {
+    method: 'POST',
+    body: form
   });
-  const res = await fetch('https://serpapi.com/search.json?' + params.toString());
-  if (!res.ok) throw new Error(res.status + ' ' + (await res.text()));
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error('ImgBB upload failed: ' + (err || res.status));
+  }
   const data = await res.json();
-  const results = data.shopping_results || [];
+  const url = data.data?.url || data.data?.display_url;
+  if (!url) throw new Error('ImgBB did not return image URL');
+  return url;
+}
 
-  return results.slice(0, 8).map((p) => ({
-    name: p.title || 'Product',
-    price: p.price || '',
-    link: p.product_link || p.link || '',
-    image: p.thumbnail || p.serpapi_thumbnail || '',
-    source: p.source || 'Google Shopping'
-  })).filter((p) => p.link);
+async function fetchVisuallySimilarProducts(serpapiKey, imgbbApiKey, base64Image, mimeType) {
+  const imageUrl = await uploadImageToImgBB(imgbbApiKey, base64Image);
+
+  // Try products first (shopping listings), then visual_matches (any visually similar)
+  for (const searchType of ['products', 'visual_matches']) {
+    const params = new URLSearchParams({
+      engine: 'google_lens',
+      url: imageUrl,
+      type: searchType,
+      api_key: serpapiKey
+    });
+    const res = await fetch('https://serpapi.com/search.json?' + params.toString());
+    if (!res.ok) throw new Error(res.status + ' ' + (await res.text()));
+    const data = await res.json();
+    const matches = data.visual_matches || [];
+
+    if (matches.length > 0) {
+      return matches.slice(0, 8).map((m) => ({
+        name: m.title || 'Similar product',
+        price: m.price?.value || m.price || '',
+        link: m.link || '',
+        image: m.thumbnail || m.image || '',
+        source: m.source || ''
+      })).filter((p) => p.link);
+    }
+  }
+  return [];
 }
 
 function parseSearchQuery(text) {

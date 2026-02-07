@@ -168,7 +168,7 @@
     overlay.appendChild(canvas);
     const loadingMsg = document.createElement('div');
     loadingMsg.className = 'lens-loading-msg';
-    loadingMsg.textContent = 'Analyzing & finding similar products…';
+    loadingMsg.textContent = 'Analyzing & finding visually similar products…';
     overlay.appendChild(loadingMsg);
     document.body.appendChild(overlay);
     return { overlay, canvas };
@@ -202,7 +202,7 @@
 
     const header = document.createElement('div');
     header.className = 'lens-results-header';
-    header.innerHTML = '<h2 class="lens-results-title">Similar to selection</h2>';
+    header.innerHTML = '<h2 class="lens-results-title">Visually similar products</h2>';
     const closeBtn = document.createElement('button');
     closeBtn.className = 'lens-results-close';
     closeBtn.type = 'button';
@@ -214,7 +214,7 @@
 
     const body = document.createElement('div');
     body.className = 'lens-results-body';
-    body.innerHTML = '<p class="lens-results-desc"></p><div class="lens-results-section">Similar products to buy</div><div class="lens-results-list"></div>';
+    body.innerHTML = '<p class="lens-results-desc"></p><div class="lens-results-section">Products that look like your selection</div><div class="lens-results-list"></div>';
     const descEl = body.querySelector('.lens-results-desc');
     const listEl = body.querySelector('.lens-results-list');
     descEl.textContent = description || 'No description.';
