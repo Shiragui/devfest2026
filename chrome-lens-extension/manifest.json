@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Lens Capture",
+  "name": "Project GREEN",
   "version": "1.0.0",
-  "description": "Select any area on a webpage, analyze it with Vision AI, and send the result to your backend.",
+  "description": "Detect and save clothing items from videos with drag-to-highlight selection.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -10,18 +10,27 @@
   ],
   "host_permissions": [
     "https://api.dedaluslabs.ai/*",
-    "https://generativelanguage.googleapis.com/*",
     "<all_urls>"
   ],
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dist/content.js"],
+      "css": ["dist/style.css"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
   "action": {
-    "default_popup": "popup.html",
-    "default_title": "Lens Capture - Select area to analyze"
+    "default_title": "Project GREEN - Clothing Detection"
   },
-  "options_ui": {
-    "page": "options.html",
-    "open_in_tab": true
-  }
+  "web_accessible_resources": [
+    {
+      "resources": ["dist/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

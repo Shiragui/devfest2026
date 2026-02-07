@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Project GREEN Icon Generator</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    canvas {
+      border: 1px solid #ddd;
+      margin: 10px 0;
+    }
+    button {
+      background: #98FF98;
+      color: #1a5a1a;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      margin: 5px;
+    }
+    button:hover {
+      background: #7AE87A;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Project GREEN Icon Generator</h1>
+    <p>Click the buttons below to generate and download icons in mint green (#98FF98).</p>
+    
+    <div>
+      <canvas id="icon16" width="16" height="16"></canvas>
+      <button onclick="downloadIcon('icon16', 16)">Download 16x16</button>
+    </div>
+    
+    <div>
+      <canvas id="icon32" width="32" height="32"></canvas>
+      <button onclick="downloadIcon('icon32', 32)">Download 32x32</button>
+    </div>
+    
+    <div>
+      <canvas id="icon48" width="48" height="48"></canvas>
+      <button onclick="downloadIcon('icon48', 48)">Download 48x48</button>
+    </div>
+  </div>
+
+  <script>
+    const mintGreen = '#98FF98';
+    const darkGreen = '#1a5a1a';
+
+    function drawIcon(canvasId, size) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      
+      // Fill with mint green
+      ctx.fillStyle = mintGreen;
+      ctx.fillRect(0, 0, size, size);
+      
+      // Draw a simple "G" or clothing icon
+      ctx.fillStyle = darkGreen;
+      ctx.font = `bold ${size * 0.6}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('G', size / 2, size / 2);
+    }
+
+    function downloadIcon(canvasId, size) {
+      const canvas = document.getElementById(canvasId);
+      const link = document.createElement('a');
+      link.download = `icon${size}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // Draw all icons on load
+    drawIcon('icon16', 16);
+    drawIcon('icon32', 32);
+    drawIcon('icon48', 48);
+  </script>
+</body>
+</html>
