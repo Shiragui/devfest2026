@@ -89,7 +89,6 @@ async function handleAnalyzeAndSend(payload) {
     };
   }
 
-  const provider = config.visionProvider || 'dedalus';
   const apiKey =
     provider === 'gemini'
       ? config.geminiApiKey?.trim()

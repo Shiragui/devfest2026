@@ -124,13 +124,14 @@
         position: fixed;
         top: 50%;
         right: 24px;
+        left: auto;
         transform: translateY(-50%);
         z-index: 2147483649;
         width: min(420px, calc(100vw - 48px));
         max-height: 85vh;
         background: #ffffff !important;
         border-radius: 16px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(34, 197, 94, 0.2) !important;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.08) !important;
         font-family: system-ui, -apple-system, sans-serif;
         overflow: hidden;
         display: flex;
@@ -138,41 +139,41 @@
         animation: lens-popup-in 0.2s ease;
       }
       #lens-results-popup.dragging { cursor: move; }
-      @keyframes lens-popup-in { from { opacity: 0; transform: translateY(-50%) scale(0.96); } to { opacity: 1; transform: translateY(-50%) scale(1); } }
+      @keyframes lens-popup-in { from { opacity: 0; transform: translateY(-50%) translateX(12px) scale(0.98); } to { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); } }
       #lens-results-popup .lens-results-backdrop {
         position: fixed;
         inset: 0;
         z-index: -1;
-        background: rgba(0, 0, 0, 0) !important;
+        background: rgba(0, 0, 0, 0.2) !important;
       }
       #lens-results-popup .lens-results-header {
         padding: 16px 20px;
-        border-bottom: 1px solid #86efac !important;
+        border-bottom: 1px solid #e5e7eb !important;
         display: flex;
         align-items: center;
         justify-content: space-between;
         flex-shrink: 0;
         cursor: move;
-        background: #ecfdf5 !important;
+        background: #ffffff !important;
         user-select: none;
       }
-      #lens-results-popup .lens-results-title { margin: 0; font-size: 16px; font-weight: 600; color: #047857 !important; }
+      #lens-results-popup .lens-results-title { margin: 0; font-size: 16px; font-weight: 600; color: #111827 !important; }
       #lens-results-popup .lens-results-close {
         width: 32px; height: 32px;
-        border: none; background: #6ee7b7 !important; color: #047857 !important;
+        border: none; background: #f3f4f6 !important; color: #374151 !important;
         border-radius: 8px; cursor: pointer; font-size: 18px; line-height: 1;
         display: flex; align-items: center; justify-content: center;
         flex-shrink: 0;
       }
-      #lens-results-popup .lens-results-close:hover { background: #34d399 !important; }
+      #lens-results-popup .lens-results-close:hover { background: #e5e7eb !important; }
       #lens-results-popup .lens-results-body { padding: 16px 20px; overflow-y: auto; flex: 1; background: #ffffff !important; }
-      #lens-results-popup .lens-results-section { font-size: 12px; font-weight: 600; color: #059669 !important; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 12px; }
+      #lens-results-popup .lens-results-section { font-size: 12px; font-weight: 600; color: #6b7280 !important; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 12px; }
       #lens-results-popup .lens-product-card {
-        background: #ecfdf5 !important;
+        background: #f9fafb !important;
         border-radius: 12px;
         padding: 14px 16px;
         margin-bottom: 16px;
-        border: 1px solid #a7f3d0 !important;
+        border: 1px solid #e5e7eb !important;
         display: flex;
         gap: 12px;
         align-items: flex-start;
@@ -180,22 +181,22 @@
         color: inherit;
         transition: background 0.15s ease, border-color 0.15s ease;
       }
-      #lens-results-popup .lens-product-card:hover { background: #d1fae5 !important; border-color: #6ee7b7 !important; }
+      #lens-results-popup .lens-product-card:hover { background: #f3f4f6 !important; border-color: #d1d5db !important; }
       #lens-results-popup .lens-product-card:last-child { margin-bottom: 0; }
       #lens-results-popup .lens-product-img {
         width: 64px; height: 64px; object-fit: cover; border-radius: 8px; flex-shrink: 0;
       }
       #lens-results-popup .lens-product-img-placeholder {
-        width: 64px; height: 64px; background: #a7f3d0 !important; border-radius: 8px; flex-shrink: 0;
-        display: flex; align-items: center; justify-content: center; font-size: 20px; color: #047857 !important;
+        width: 64px; height: 64px; background: #e5e7eb !important; border-radius: 8px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center; font-size: 20px; color: #6b7280 !important;
       }
       #lens-results-popup .lens-product-info { flex: 1; min-width: 0; overflow: visible; }
       #lens-results-popup .lens-product-name {
         font-weight: 600; font-size: 14px; color: #111; margin-bottom: 6px; line-height: 1.3;
         display: -webkit-box; -webkit-line-clamp: 2; overflow: hidden; -webkit-box-orient: vertical;
       }
-      #lens-results-popup .lens-product-meta { font-size: 12px; color: #047857 !important; margin-top: 2px; }
-      #lens-results-popup .lens-product-price { font-weight: 600; color: #059669 !important; }
+      #lens-results-popup .lens-product-meta { font-size: 12px; color: #6b7280 !important; margin-top: 2px; }
+      #lens-results-popup .lens-product-price { font-weight: 600; color: #111827 !important; }
       #lens-results-popup .lens-product-source { color: #6b7280; }
       #lens-results-popup .lens-product-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
       #lens-results-popup .lens-product-links a {
@@ -213,15 +214,15 @@
       #lens-results-popup .lens-no-products { font-size: 13px; color: #6b7280; padding: 8px 0; }
       #lens-results-popup .lens-results-toolbar { margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
       #lens-results-popup .lens-save-bookmark {
-        padding: 6px 12px; border-radius: 8px; border: 1px solid #a7f3d0;
-        background: #34d399; color: #047857; font-size: 12px; font-weight: 600;
+        padding: 6px 12px; border-radius: 8px; border: 1px solid #d1d5db;
+        background: #374151; color: #fff; font-size: 12px; font-weight: 600;
         cursor: pointer;
       }
-      #lens-results-popup .lens-save-bookmark:hover:not(:disabled) { background: #6ee7b7; }
+      #lens-results-popup .lens-save-bookmark:hover:not(:disabled) { background: #4b5563; }
       #lens-results-popup .lens-save-bookmark:disabled { opacity: 0.7; cursor: default; }
       #lens-results-popup .lens-sort-select {
-        padding: 6px 10px; border-radius: 8px; border: 1px solid #a7f3d0;
-        background: #ecfdf5; color: #047857; font-size: 12px; font-weight: 500;
+        padding: 6px 10px; border-radius: 8px; border: 1px solid #d1d5db;
+        background: #fff; color: #374151; font-size: 12px; font-weight: 500;
         cursor: pointer;
       }
       #lens-video-bubble {
@@ -340,6 +341,7 @@
     function onHeaderMouseDown(e) {
       if (e.target === closeBtn) return;
       const rect = popup.getBoundingClientRect();
+      popup.style.right = 'auto';
       popup.style.left = rect.left + 'px';
       popup.style.top = rect.top + 'px';
       popup.style.transform = 'none';
@@ -367,6 +369,21 @@
     const listEl = body.querySelector('.lens-results-list');
     const sectionEl = body.querySelector('.lens-results-section');
     const toolbarEl = body.querySelector('.lens-results-toolbar');
+    const products = Array.isArray(similarProducts) ? similarProducts : [];
+    if (products.length > 0) {
+      const sortSelect = document.createElement('select');
+      sortSelect.className = 'lens-sort-select';
+      sortSelect.innerHTML = '<option value="default">Default order</option><option value="price-asc">Price: Low to High</option><option value="price-desc">Price: High to Low</option>';
+      sortSelect.addEventListener('change', () => {
+        const v = sortSelect.value;
+        let sorted = [...products];
+        if (v === 'price-asc') sorted = sortWithNoPriceLast(sorted, true);
+        else if (v === 'price-desc') sorted = sortWithNoPriceLast(sorted, false);
+        else sorted = sortWithNoPriceLast(sorted, true);
+        renderProducts(sorted);
+      });
+      toolbarEl.appendChild(sortSelect);
+    }
     if (bookmarkApiUrl && bookmarkToken) {
       const saveBtn = document.createElement('button');
       saveBtn.className = 'lens-save-bookmark';
@@ -407,7 +424,6 @@
       warn.textContent = 'Backend: ' + webhookError;
       body.insertBefore(warn, sectionEl);
     }
-    const products = Array.isArray(similarProducts) ? similarProducts : [];
     function parsePriceNum(p) {
       if (p.priceNum != null && typeof p.priceNum === 'number') return p.priceNum;
       const s = (p.price || '').toString().replace(/[^0-9.]/g, '');
@@ -498,20 +514,6 @@
 
         listEl.appendChild(card);
       });
-    }
-    if (products.length > 0) {
-      const sortSelect = document.createElement('select');
-      sortSelect.className = 'lens-sort-select';
-      sortSelect.innerHTML = '<option value="default">Default order</option><option value="price-asc">Price: Low to High</option><option value="price-desc">Price: High to Low</option>';
-      sortSelect.addEventListener('change', () => {
-        const v = sortSelect.value;
-        let sorted = [...products];
-        if (v === 'price-asc') sorted = sortWithNoPriceLast(sorted, true);
-        else if (v === 'price-desc') sorted = sortWithNoPriceLast(sorted, false);
-        else sorted = sortWithNoPriceLast(sorted, true);
-        renderProducts(sorted);
-      });
-      toolbarEl.appendChild(sortSelect);
     }
     renderProducts(sortWithNoPriceLast([...products], true));
 
