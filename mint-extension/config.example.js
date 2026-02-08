@@ -10,6 +10,6 @@ const CONFIG = {
   imgbbApiKey: '',
   webhookUrl: '',
   webhookApiKey: '',  // Optional: X-API-Key for backend auth
-  bookmarkApiUrl: '',  // e.g. http://localhost:8000 - for saving bookmarks
-  bookmarkToken: ''   // JWT from web frontend login
+  bookmarkApiUrl: '',  // Base URL for bookmark API (e.g. https://yoursite.netlify.app)
+  bookmarkToken: ''   // JWT from login – prefer extension Options → Bookmark login instead
 };

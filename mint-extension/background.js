@@ -35,6 +35,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .catch((err) => sendResponse({ success: false, error: err.message }));
     return true;
   }
+  if (message.type === 'SAVE_BOOKMARK') {
+    handleSaveBookmark(message.payload)
+      .then(() => sendResponse({ success: true }))
+      .catch((err) => sendResponse({ success: false, error: err.message }));
+    return true;
+  }
 });
 
 async function handleCaptureTab(tabId) {
@@ -113,14 +119,18 @@ async function handleAnalyzeAndSend(payload) {
     // Non-fatal: still return description
   }
 
+  const stored = await chrome.storage.local.get(['bookmarkApiUrl', 'bookmarkToken']);
+  const bookmarkApiUrl = stored.bookmarkApiUrl?.trim() || config.bookmarkApiUrl?.trim() || '';
+  const bookmarkToken = stored.bookmarkToken?.trim() || config.bookmarkToken?.trim() || '';
+
   return {
     description,
     sentToWebhook: !webhookError && !!config.webhookUrl?.trim(),
     webhookError,
     similarProducts,
     croppedBase64,
-    bookmarkApiUrl: config.bookmarkApiUrl?.trim() || '',
-    bookmarkToken: config.bookmarkToken?.trim() || ''
+    bookmarkApiUrl,
+    bookmarkToken
   };
 }
 
@@ -397,11 +407,38 @@ async function callGeminiText(apiKey, prompt) {
 }
 
 async function postToWebhook(url, payload, apiKey) {
+  const fullUrl = url.startsWith('http://') || url.startsWith('https://') ? url : 'https://' + url;
   const headers = { 'Content-Type': 'application/json' };
   if (apiKey) headers['X-API-Key'] = apiKey;
-  const res = await fetch(url, {
+  const res = await fetch(fullUrl, {
     method: 'POST',
     headers,
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(res.status + ' ' + (errText || res.statusText));
+  }
+}
+
+/**
+ * Save bookmark via backend API. Runs in extension context to avoid CORS.
+ * Uses chrome.storage (from extension login) first, falls back to config.
+ */
+async function handleSaveBookmark(payload) {
+  const stored = await chrome.storage.local.get(['bookmarkApiUrl', 'bookmarkToken']);
+  const config = getConfig();
+  const baseUrl = stored.bookmarkApiUrl?.trim() || config.bookmarkApiUrl?.trim();
+  const token = stored.bookmarkToken?.trim() || config.bookmarkToken?.trim();
+  if (!baseUrl || !token) throw new Error('Bookmark API not configured. Log in via extension options (right-click icon → Options).');
+  const url = baseUrl.replace(/\/$/, '');
+  const bookmarkUrl = url.endsWith('/api/bookmarks') ? url : url + '/api/bookmarks';
+  const res = await fetch(bookmarkUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + token
+    },
     body: JSON.stringify(payload)
   });
   if (!res.ok) {

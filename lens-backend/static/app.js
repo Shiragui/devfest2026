@@ -224,20 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
     showView('login-view');
   });
 
-  document.getElementById('btn-copy-token').addEventListener('click', async () => {
-    const token = getToken();
-    if (!token) return;
-    try {
-      await navigator.clipboard.writeText(token);
-      const btn = document.getElementById('btn-copy-token');
-      const orig = btn.textContent;
-      btn.textContent = 'Copied!';
-      setTimeout(() => { btn.textContent = orig; }, 2000);
-    } catch {
-      prompt('Copy this token for config.js bookmarkToken:', token);
-    }
-  });
-
   document.querySelector('.modal-backdrop').addEventListener('click', closeModal);
   document.querySelector('.modal-close').addEventListener('click', closeModal);
 });

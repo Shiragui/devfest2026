@@ -347,20 +347,21 @@
         saveBtn.disabled = true;
         saveBtn.textContent = 'Saving…';
         try {
-          const res = await fetch((bookmarkApiUrl.replace(/\/$/, '')) + '/api/bookmarks', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + bookmarkToken
-            },
-            body: JSON.stringify({
-              image: croppedBase64,
-              description,
-              similarProducts: products,
-              sourceUrl: window.location.href
-            })
+          const result = await new Promise((resolve) => {
+            chrome.runtime.sendMessage(
+              {
+                type: 'SAVE_BOOKMARK',
+                payload: {
+                  image: croppedBase64,
+                  description,
+                  similarProducts: products,
+                  sourceUrl: window.location.href
+                }
+              },
+              resolve
+            );
           });
-          if (!res.ok) throw new Error(await res.text());
+          if (!result?.success) throw new Error(result?.error || 'Failed to save');
           saveBtn.textContent = 'Saved!';
           showToast('Bookmark saved', 'success');
         } catch (e) {

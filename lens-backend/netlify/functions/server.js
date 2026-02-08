@@ -19,6 +19,15 @@ const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+// CORS: allow extension content scripts and web frontend
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key')
+  if (req.method === 'OPTIONS') return res.sendStatus(204)
+  next()
+})
+
 const API_KEY = process.env.LENS_API_KEY || ''
 const SECRET_KEY = process.env.LENS_SECRET_KEY || 'change-me-in-production'
 const ADMIN_USER = process.env.LENS_ADMIN_USER || 'admin'

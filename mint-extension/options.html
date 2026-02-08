@@ -12,6 +12,27 @@
     <p class="hint">API keys and webhook are configured in <strong>config.js</strong>. Edit that file with your values.</p>
     <p class="hint"><code>config.js</code> is in <code>.gitignore</code> so your keys stay private.</p>
     <p class="hint">Required: Gemini or Dedalus API key for vision. Optional: SerpAPI + ImgBB for reverse image search, webhook URL for backend.</p>
+
+    <section class="bookmark-login" style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #dadce0;">
+      <h2 style="margin: 0 0 8px; font-size: 18px; color: #0d47a1;">Bookmark login</h2>
+      <p class="hint">Log in with the same account you use on the bookmark website. Required to save bookmarks from the extension.</p>
+      <label>
+        <span>Bookmark API base URL</span>
+        <input type="url" id="bookmarkApiUrl" placeholder="https://yoursite.netlify.app" />
+      </label>
+      <label>
+        <span>Username</span>
+        <input type="text" id="bookmarkUsername" placeholder="Your username" autocomplete="username" />
+      </label>
+      <label>
+        <span>Password</span>
+        <input type="password" id="bookmarkPassword" placeholder="Your password" autocomplete="current-password" />
+      </label>
+      <button type="button" class="btn btn-primary" id="bookmarkLoginBtn">Log in</button>
+      <button type="button" class="btn" id="bookmarkLogoutBtn" style="margin-left: 8px; background: #e8eaed; color: #5f6368;">Log out</button>
+      <p id="bookmarkStatus" class="status"></p>
+    </section>
   </div>
+  <script src="options.js"></script>
 </body>
 </html>
