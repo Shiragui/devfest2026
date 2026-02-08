@@ -84,7 +84,7 @@ async function register(username, password) {
   setToken(data.access_token);
 }
 
-let state = { boards: [], bookmarks: [], selectedBoardId: null, currentTab: 'profile' };
+let state = { boards: [], bookmarks: [], selectedBoardId: null, currentTab: 'profile', feedBoards: [] };
 
 function escapeHtml(s) {
   const div = document.createElement('div');
@@ -304,34 +304,45 @@ async function loadAll() {
 async function loadFeed() {
   try {
     const data = await fetchPublic('/api/feed/boards');
-    const boards = data.boards || [];
-    const list = document.getElementById('feed-boards-list');
-    const empty = document.getElementById('feed-empty');
-    list.innerHTML = '';
-    if (boards.length === 0) {
-      empty.classList.remove('hidden');
-      return;
-    }
-    empty.classList.add('hidden');
-    boards.forEach((board) => {
-      const card = document.createElement('div');
-      card.className = 'feed-board-card';
-      const thumb = board.preview_image
-        ? `<img class="feed-board-card-thumb" src="data:image/png;base64,${board.preview_image}" alt="">`
-        : '<div class="feed-board-card-placeholder">🛒</div>';
-      card.innerHTML = `
-        <div class="feed-board-card-image">${thumb}</div>
-        <div class="feed-board-card-info">
-          <h3 class="feed-board-card-title">${escapeHtml(board.name)}</h3>
-          <p class="feed-board-card-owner">by ${escapeHtml(board.owner_name)}</p>
-        </div>
-      `;
-      card.addEventListener('click', () => openFeedBoard(board.id));
-      list.appendChild(card);
-    });
+    state.feedBoards = data.boards || [];
+    renderFeedBoards(state.feedBoards);
   } catch (err) {
     console.error(err);
   }
+}
+
+function renderFeedBoards(boards) {
+  const query = (document.getElementById('feed-search-input')?.value || '').trim().toLowerCase();
+  const filtered = query
+    ? boards.filter((b) => b.name.toLowerCase().includes(query) || (b.owner_name || '').toLowerCase().includes(query))
+    : boards;
+  const list = document.getElementById('feed-boards-list');
+  const empty = document.getElementById('feed-empty');
+  if (!list || !empty) return;
+  list.innerHTML = '';
+  if (filtered.length === 0) {
+    empty.classList.remove('hidden');
+    empty.querySelector('h3').textContent = query ? 'No boards match your search' : 'No boards yet';
+    empty.querySelector('p').textContent = query ? 'Try a different search term.' : 'Be the first to create a board and share your finds!';
+    return;
+  }
+  empty.classList.add('hidden');
+  filtered.forEach((board) => {
+    const card = document.createElement('div');
+    card.className = 'feed-board-card';
+    const thumb = board.preview_image
+      ? `<img class="feed-board-card-thumb" src="data:image/png;base64,${board.preview_image}" alt="">`
+      : '<div class="feed-board-card-placeholder">🛒</div>';
+    card.innerHTML = `
+      <div class="feed-board-card-image">${thumb}</div>
+      <div class="feed-board-card-info">
+        <h3 class="feed-board-card-title">${escapeHtml(board.name)}</h3>
+        <p class="feed-board-card-owner">by ${escapeHtml(board.owner_name)}</p>
+      </div>
+    `;
+    card.addEventListener('click', () => openFeedBoard(board.id));
+    list.appendChild(card);
+  });
 }
 
 async function openFeedBoard(boardId) {
@@ -438,6 +449,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('feed-back-btn').addEventListener('click', () => {
     document.getElementById('feed-board-view').classList.add('hidden');
     document.getElementById('feed-boards-list').classList.remove('hidden');
+  });
+
+  document.getElementById('feed-search-input')?.addEventListener('input', () => {
+    renderFeedBoards(state.feedBoards);
   });
 
   document.getElementById('btn-new-board').addEventListener('click', () => {

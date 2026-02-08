@@ -9,6 +9,6 @@ const CONFIG = {
   imgbbApiKey: '0e5ed3037d4575efa80c6a9b29c80f3d',
   webhookUrl: 'https://greenframes.netlify.app/api/lens',
   webhookApiKey: 'jkflds9320493mfsdkljfdslk',
-  bookmarkApiUrl: 'https://greenframes.netlify.app',
+  bookmarkApiUrl: 'https://mintgreen.netlify.app',
   bookmarkToken: 'jkflds9320493mfsdkljfdslk'
 };
