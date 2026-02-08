@@ -412,7 +412,9 @@
         } catch (e) {
           saveBtn.disabled = false;
           saveBtn.textContent = 'Save Bookmark';
-          showToast(e.message || 'Failed to save', 'error');
+          const msg = e?.message || '';
+          const isAuthError = !msg || msg.includes('401') || msg.includes('403') || msg.includes('Not authenticated') || msg.includes('Invalid token') || msg.includes('Please sign in') || msg.includes('Bookmark API not configured');
+          showToast(isAuthError ? 'Please sign in to bookmark a product.' : (msg || 'Failed to save'), 'error');
         }
       });
       toolbarEl.appendChild(saveBtn);

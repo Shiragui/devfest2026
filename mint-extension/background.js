@@ -485,7 +485,7 @@ async function handleSaveBookmark(payload) {
   const config = getConfig();
   const baseUrl = stored.bookmarkApiUrl?.trim() || config.bookmarkApiUrl?.trim();
   const token = stored.bookmarkToken?.trim() || config.bookmarkToken?.trim();
-  if (!baseUrl || !token) throw new Error('Bookmark API not configured. Log in via extension options (right-click icon → Options).');
+  if (!baseUrl || !token) throw new Error('Please sign in to bookmark a product.');
   const url = baseUrl.replace(/\/$/, '');
   const bookmarkUrl = url.endsWith('/api/bookmarks') ? url : url + '/api/bookmarks';
   const res = await fetch(bookmarkUrl, {
@@ -497,6 +497,9 @@ async function handleSaveBookmark(payload) {
     body: JSON.stringify(payload)
   });
   if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      throw new Error('Please sign in to bookmark a product.');
+    }
     const errText = await res.text();
     throw new Error(res.status + ' ' + (errText || res.statusText));
   }
