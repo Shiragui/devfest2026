@@ -13,8 +13,9 @@ from snowflake_jwt import generate_snowflake_jwt
 def execute_snowflake_sql(
     account_identifier: str,
     user: str,
-    private_key_path: str,
-    statement: str,
+    private_key_path: Optional[str] = None,
+    private_key_pem: Optional[str] = None,
+    statement: str = "",
     bindings: Optional[Dict[str, Dict[str, Any]]] = None,
     warehouse: Optional[str] = None,
     database: Optional[str] = None,
@@ -43,6 +44,7 @@ def execute_snowflake_sql(
         account_identifier=account_identifier,
         user=user,
         private_key_path=private_key_path,
+        private_key_pem=private_key_pem,
         passphrase=passphrase,
     )
 
@@ -80,7 +82,6 @@ def execute_snowflake_sql(
 def insert_lens_vault(
     account_identifier: str,
     user: str,
-    private_key_path: str,
     record_id: str,
     image_base64: str,
     label: str,
@@ -88,6 +89,8 @@ def insert_lens_vault(
     warehouse: str,
     database: str,
     schema: str,
+    private_key_path: Optional[str] = None,
+    private_key_pem: Optional[str] = None,
     role: Optional[str] = None,
     passphrase: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -113,6 +116,7 @@ def insert_lens_vault(
         account_identifier=account_identifier,
         user=user,
         private_key_path=private_key_path,
+        private_key_pem=private_key_pem,
         statement=statement,
         bindings=bindings,
         warehouse=warehouse,

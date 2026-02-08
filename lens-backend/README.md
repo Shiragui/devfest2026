@@ -48,7 +48,8 @@ Copy `.env.example` to `.env` and configure:
 | `LENS_ADMIN_PASSWORD` | Login password (or bcrypt hash) |
 | `SNOWFLAKE_ACCOUNT` | Account identifier (e.g. xy12345) |
 | `SNOWFLAKE_USER` | Snowflake user |
-| `SNOWFLAKE_PRIVATE_KEY_PATH` | Path to rsa_key.p8 |
+| `SNOWFLAKE_PRIVATE_KEY_PATH` | Path to rsa_key.p8 (local) |
+| `SNOWFLAKE_PRIVATE_KEY` | PEM content (Netlify/serverless; use `\n` for newlines) |
 | `SNOWFLAKE_PRIVATE_KEY_PASSPHRASE` | Passphrase if key is encrypted |
 | `SNOWFLAKE_WAREHOUSE` | Warehouse name |
 | `SNOWFLAKE_DATABASE` | Database name |
@@ -60,6 +61,15 @@ Copy `.env.example` to `.env` and configure:
 ```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+## Deploy to Netlify
+
+1. Push the repo to GitHub and connect it to Netlify.
+2. Set environment variables in Netlify: Site settings → Environment variables.
+3. For Snowflake on Netlify, use `SNOWFLAKE_PRIVATE_KEY` (paste PEM content; use `\n` for newlines) instead of `SNOWFLAKE_PRIVATE_KEY_PATH`.
+4. Build settings: Netlify reads `netlify.toml` automatically.
+
+**Note:** SQLite data (users, bookmarks) is stored in `/tmp` on Netlify and is ephemeral. For persistence, consider [Turso](https://turso.tech/) or another hosted DB.
 
 ## Extension configuration
 

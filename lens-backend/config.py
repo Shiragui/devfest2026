@@ -33,6 +33,7 @@ ADMIN_PASSWORD = _env("LENS_ADMIN_PASSWORD", "admin")  # In production use hashe
 SNOWFLAKE_ACCOUNT = _env("SNOWFLAKE_ACCOUNT")
 SNOWFLAKE_USER = _env("SNOWFLAKE_USER")
 SNOWFLAKE_PRIVATE_KEY_PATH = _env("SNOWFLAKE_PRIVATE_KEY_PATH", "rsa_key.p8")
+SNOWFLAKE_PRIVATE_KEY = _env("SNOWFLAKE_PRIVATE_KEY")  # PEM content (for Netlify/serverless)
 SNOWFLAKE_PRIVATE_KEY_PASSPHRASE = _env("SNOWFLAKE_PRIVATE_KEY_PASSPHRASE")
 SNOWFLAKE_WAREHOUSE = _env("SNOWFLAKE_WAREHOUSE")
 SNOWFLAKE_DATABASE = _env("SNOWFLAKE_DATABASE")
@@ -42,10 +43,14 @@ SNOWFLAKE_ROLE = _env("SNOWFLAKE_ROLE")
 
 def get_snowflake_config() -> dict:
     """Get Snowflake config for inserts."""
+    # Use inline PEM key (Netlify/serverless) or file path (local)
+    private_key = SNOWFLAKE_PRIVATE_KEY.strip() if SNOWFLAKE_PRIVATE_KEY else None
+    private_key_path = SNOWFLAKE_PRIVATE_KEY_PATH if not private_key else None
     return {
         "account_identifier": SNOWFLAKE_ACCOUNT,
         "user": SNOWFLAKE_USER,
-        "private_key_path": SNOWFLAKE_PRIVATE_KEY_PATH,
+        "private_key_path": private_key_path,
+        "private_key_pem": private_key,
         "passphrase": SNOWFLAKE_PRIVATE_KEY_PASSPHRASE or None,
         "warehouse": SNOWFLAKE_WAREHOUSE,
         "database": SNOWFLAKE_DATABASE,

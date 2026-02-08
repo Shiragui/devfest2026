@@ -148,8 +148,10 @@ async def lens_webhook(
 ):
     """Webhook for extension. Saves to Snowflake LENS_VAULT."""
     cfg = get_snowflake_config()
-    required = ["account_identifier", "user", "private_key_path", "warehouse", "database", "schema"]
+    required = ["account_identifier", "user", "warehouse", "database", "schema"]
     missing = [k for k in required if not cfg.get(k)]
+    if not cfg.get("private_key_path") and not cfg.get("private_key_pem"):
+        missing.append("private_key_path or private_key_pem (SNOWFLAKE_PRIVATE_KEY)")
     if missing:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -168,7 +170,6 @@ async def lens_webhook(
         insert_lens_vault(
             account_identifier=cfg["account_identifier"],
             user=cfg["user"],
-            private_key_path=cfg["private_key_path"],
             record_id=record_id,
             image_base64=payload.image,
             label=payload.description,
@@ -176,6 +177,8 @@ async def lens_webhook(
             warehouse=cfg["warehouse"],
             database=cfg["database"],
             schema=cfg["schema"],
+            private_key_path=cfg.get("private_key_path"),
+            private_key_pem=cfg.get("private_key_pem"),
             role=cfg.get("role"),
             passphrase=cfg.get("passphrase"),
         )
@@ -254,6 +257,13 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    # Also serve at root for Netlify-compatible paths (publish=static)
+    @app.get("/styles.css")
+    def serve_styles():
+        return FileResponse(STATIC_DIR / "styles.css")
+    @app.get("/app.js")
+    def serve_app_js():
+        return FileResponse(STATIC_DIR / "app.js")
 
 
 @app.get("/")

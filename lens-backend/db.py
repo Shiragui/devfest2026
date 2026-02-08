@@ -2,12 +2,20 @@
 SQLite-based storage for users and bookmarks.
 """
 import json
+import os
 import sqlite3
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-DB_PATH = Path(__file__).resolve().parent / "lens.db"
+# Use /tmp on Netlify (ephemeral); project dir for local/dev
+_proj_dir = Path(__file__).resolve().parent
+if os.environ.get("LENS_DB_PATH"):
+    DB_PATH = Path(os.environ["LENS_DB_PATH"])
+elif os.environ.get("NETLIFY"):
+    DB_PATH = Path("/tmp/lens.db")
+else:
+    DB_PATH = _proj_dir / "lens.db"
 
 
 def get_conn():
