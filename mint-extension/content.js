@@ -205,6 +205,11 @@
       #lens-results-popup .lens-product-links a:hover { opacity: 0.9; }
       #lens-results-popup .lens-product-links a.lens-link-amazon { background: #232f3e; }
       #lens-results-popup .lens-product-links a.lens-link-google { background: #4285f4; }
+      #lens-results-popup .lens-product-links .lens-btn-save {
+        font-size: 12px; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer;
+        background: #0d7a3c; color: #fff; font-weight: 500;
+      }
+      #lens-results-popup .lens-product-links .lens-btn-save:hover { background: #0a5c2d; }
       #lens-results-popup .lens-no-products { font-size: 13px; color: #6b7280; padding: 8px 0; }
       #lens-results-popup .lens-results-toolbar { margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
       #lens-results-popup .lens-save-bookmark {
@@ -280,6 +285,7 @@
     if (popup) popup.remove();
     popup = document.createElement('div');
     popup.id = id;
+    const sourcePageUrl = window.location.href || '';
 
     function closePopup() {
       window.removeEventListener('mousemove', onHeaderMouseMove);
@@ -290,6 +296,28 @@
 
     function onEscape(e) {
       if (e.key === 'Escape') closePopup();
+    }
+
+    function onSave(product, searchQuery) {
+      chrome.runtime.sendMessage(
+        {
+          type: 'SAVE_ITEM',
+          payload: {
+            type: 'product',
+            title: product.name || 'Product',
+            description: description || '',
+            metadata: { search_query: searchQuery || product.search_query || '' },
+            source_url: sourcePageUrl || ('https://www.google.com/search?tbm=shop&q=' + encodeURIComponent((searchQuery || product.search_query || product.name || '').trim()))
+          }
+        },
+        (res) => {
+          if (res && res.success) {
+            showToast('Saved to your list.', 'success');
+          } else {
+            showToast(res?.error || 'Could not save.', 'error');
+          }
+        }
+      );
     }
 
     const backdrop = document.createElement('div');

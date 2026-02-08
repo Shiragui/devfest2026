@@ -54,12 +54,42 @@ async function handleCaptureTab(tabId) {
 }
 
 async function handleAnalyzeAndSend(payload) {
-  const { croppedBase64, mimeType } = payload;
+  const { croppedBase64, mimeType, intent = 'product' } = payload;
   if (!croppedBase64) throw new Error('No image data');
 
   const config = getConfig();
   const provider = config.visionProvider || 'dedalus';
 
+  // Prefer backend when configured
+  if (config.backendUrl) {
+    const base = config.backendUrl.replace(/\/$/, '');
+    const url = base + '/analyze';
+    const headers = { 'Content-Type': 'application/json' };
+    if (config.authToken) headers['Authorization'] = 'Bearer ' + config.authToken;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        image: croppedBase64,
+        mimeType: mimeType || 'image/png',
+        intent
+      })
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      if (res.status === 401) throw new Error('Invalid or missing auth token. Check extension options.');
+      throw new Error(res.status + ' ' + (errText || res.statusText));
+    }
+    const data = await res.json();
+    return {
+      description: data.description || '',
+      similarProducts: data.similarProducts || data.results || [],
+      sentToWebhook: false,
+      webhookError: null
+    };
+  }
+
+  const provider = config.visionProvider || 'dedalus';
   const apiKey =
     provider === 'gemini'
       ? config.geminiApiKey?.trim()
@@ -132,6 +162,32 @@ async function handleAnalyzeAndSend(payload) {
     bookmarkApiUrl,
     bookmarkToken
   };
+}
+
+async function handleSaveItem(payload) {
+  const config = await getStoredConfig();
+  if (!config.backendUrl) throw new Error('Backend URL is not set. Open extension options.');
+  const base = config.backendUrl.replace(/\/$/, '');
+  const url = base + '/items';
+  const headers = { 'Content-Type': 'application/json' };
+  if (config.authToken) headers['Authorization'] = 'Bearer ' + config.authToken;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      type: payload.type || 'product',
+      title: payload.title || '',
+      description: payload.description || '',
+      metadata: payload.metadata || {},
+      source_url: payload.source_url || ''
+    })
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    if (res.status === 401) throw new Error('Invalid or missing auth token.');
+    throw new Error(res.status + ' ' + (errText || res.statusText));
+  }
+  return await res.json();
 }
 
 function formatWebhookError(err) {
