@@ -56,6 +56,50 @@
       #${OVERLAY_ID}.loading .lens-loading-msg {
         display: block;
       }
+      #${OVERLAY_ID} .lens-confirm-bar {
+        position: absolute;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 12px;
+        padding: 12px 20px;
+        background: rgba(0,0,0,0.85);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        z-index: 10;
+        pointer-events: auto;
+      }
+      #${OVERLAY_ID} .lens-confirm-bar button {
+        padding: 10px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: system-ui, sans-serif;
+      }
+      #${OVERLAY_ID} .lens-confirm-bar .lens-btn-search {
+        background: #34d399;
+        color: #047857;
+      }
+      #${OVERLAY_ID} .lens-confirm-bar .lens-btn-search:hover { background: #6ee7b7; }
+      #${OVERLAY_ID} .lens-confirm-bar .lens-btn-cancel {
+        background: #6b7280;
+        color: #fff;
+      }
+      #${OVERLAY_ID} .lens-confirm-bar .lens-btn-cancel:hover { background: #4b5563; }
+      #${OVERLAY_ID} .lens-resize-handle {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background: #34d399;
+        border: 2px solid #fff;
+        border-radius: 2px;
+        cursor: pointer;
+        z-index: 10;
+        pointer-events: auto;
+      }
       #lens-capture-toast {
         position: fixed;
         bottom: 24px;
@@ -79,14 +123,15 @@
       #lens-results-popup {
         position: fixed;
         top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        right: 24px;
+        left: auto;
+        transform: translateY(-50%);
         z-index: 2147483649;
-        width: min(420px, calc(100vw - 32px));
+        width: min(420px, calc(100vw - 48px));
         max-height: 85vh;
         background: #ffffff !important;
         border-radius: 16px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(34, 197, 94, 0.2) !important;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.08) !important;
         font-family: system-ui, -apple-system, sans-serif;
         overflow: hidden;
         display: flex;
@@ -94,41 +139,41 @@
         animation: lens-popup-in 0.2s ease;
       }
       #lens-results-popup.dragging { cursor: move; }
-      @keyframes lens-popup-in { from { opacity: 0; transform: translate(-50%, -50%) scale(0.96); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+      @keyframes lens-popup-in { from { opacity: 0; transform: translateY(-50%) translateX(12px) scale(0.98); } to { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); } }
       #lens-results-popup .lens-results-backdrop {
         position: fixed;
         inset: 0;
         z-index: -1;
-        background: rgba(167, 243, 208, 0.5) !important;
+        background: rgba(0, 0, 0, 0.2) !important;
       }
       #lens-results-popup .lens-results-header {
         padding: 16px 20px;
-        border-bottom: 1px solid #86efac !important;
+        border-bottom: 1px solid #e5e7eb !important;
         display: flex;
         align-items: center;
         justify-content: space-between;
         flex-shrink: 0;
         cursor: move;
-        background: #ecfdf5 !important;
+        background: #ffffff !important;
         user-select: none;
       }
-      #lens-results-popup .lens-results-title { margin: 0; font-size: 16px; font-weight: 600; color: #047857 !important; }
+      #lens-results-popup .lens-results-title { margin: 0; font-size: 16px; font-weight: 600; color: #111827 !important; }
       #lens-results-popup .lens-results-close {
         width: 32px; height: 32px;
-        border: none; background: #6ee7b7 !important; color: #047857 !important;
+        border: none; background: #f3f4f6 !important; color: #374151 !important;
         border-radius: 8px; cursor: pointer; font-size: 18px; line-height: 1;
         display: flex; align-items: center; justify-content: center;
         flex-shrink: 0;
       }
-      #lens-results-popup .lens-results-close:hover { background: #34d399 !important; }
+      #lens-results-popup .lens-results-close:hover { background: #e5e7eb !important; }
       #lens-results-popup .lens-results-body { padding: 16px 20px; overflow-y: auto; flex: 1; background: #ffffff !important; }
-      #lens-results-popup .lens-results-section { font-size: 12px; font-weight: 600; color: #059669 !important; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 12px; }
+      #lens-results-popup .lens-results-section { font-size: 12px; font-weight: 600; color: #6b7280 !important; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 12px; }
       #lens-results-popup .lens-product-card {
-        background: #ecfdf5 !important;
+        background: #f9fafb !important;
         border-radius: 12px;
         padding: 14px 16px;
         margin-bottom: 16px;
-        border: 1px solid #a7f3d0 !important;
+        border: 1px solid #e5e7eb !important;
         display: flex;
         gap: 12px;
         align-items: flex-start;
@@ -136,22 +181,22 @@
         color: inherit;
         transition: background 0.15s ease, border-color 0.15s ease;
       }
-      #lens-results-popup .lens-product-card:hover { background: #d1fae5 !important; border-color: #6ee7b7 !important; }
+      #lens-results-popup .lens-product-card:hover { background: #f3f4f6 !important; border-color: #d1d5db !important; }
       #lens-results-popup .lens-product-card:last-child { margin-bottom: 0; }
       #lens-results-popup .lens-product-img {
         width: 64px; height: 64px; object-fit: cover; border-radius: 8px; flex-shrink: 0;
       }
       #lens-results-popup .lens-product-img-placeholder {
-        width: 64px; height: 64px; background: #a7f3d0 !important; border-radius: 8px; flex-shrink: 0;
-        display: flex; align-items: center; justify-content: center; font-size: 20px; color: #047857 !important;
+        width: 64px; height: 64px; background: #e5e7eb !important; border-radius: 8px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center; font-size: 20px; color: #6b7280 !important;
       }
       #lens-results-popup .lens-product-info { flex: 1; min-width: 0; overflow: visible; }
       #lens-results-popup .lens-product-name {
         font-weight: 600; font-size: 14px; color: #111; margin-bottom: 6px; line-height: 1.3;
         display: -webkit-box; -webkit-line-clamp: 2; overflow: hidden; -webkit-box-orient: vertical;
       }
-      #lens-results-popup .lens-product-meta { font-size: 12px; color: #047857 !important; margin-top: 2px; }
-      #lens-results-popup .lens-product-price { font-weight: 600; color: #059669 !important; }
+      #lens-results-popup .lens-product-meta { font-size: 12px; color: #6b7280 !important; margin-top: 2px; }
+      #lens-results-popup .lens-product-price { font-weight: 600; color: #111827 !important; }
       #lens-results-popup .lens-product-source { color: #6b7280; }
       #lens-results-popup .lens-product-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
       #lens-results-popup .lens-product-links a {
@@ -161,7 +206,25 @@
       #lens-results-popup .lens-product-links a:hover { opacity: 0.9; }
       #lens-results-popup .lens-product-links a.lens-link-amazon { background: #232f3e; }
       #lens-results-popup .lens-product-links a.lens-link-google { background: #4285f4; }
+      #lens-results-popup .lens-product-links .lens-btn-save {
+        font-size: 12px; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer;
+        background: #0d7a3c; color: #fff; font-weight: 500;
+      }
+      #lens-results-popup .lens-product-links .lens-btn-save:hover { background: #0a5c2d; }
       #lens-results-popup .lens-no-products { font-size: 13px; color: #6b7280; padding: 8px 0; }
+      #lens-results-popup .lens-results-toolbar { margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      #lens-results-popup .lens-save-bookmark {
+        padding: 6px 12px; border-radius: 8px; border: 1px solid #d1d5db;
+        background: #374151; color: #fff; font-size: 12px; font-weight: 600;
+        cursor: pointer;
+      }
+      #lens-results-popup .lens-save-bookmark:hover:not(:disabled) { background: #4b5563; }
+      #lens-results-popup .lens-save-bookmark:disabled { opacity: 0.7; cursor: default; }
+      #lens-results-popup .lens-sort-select {
+        padding: 6px 10px; border-radius: 8px; border: 1px solid #d1d5db;
+        background: #fff; color: #374151; font-size: 12px; font-weight: 500;
+        cursor: pointer;
+      }
       #lens-video-bubble {
         position: fixed;
         bottom: 24px;
@@ -212,13 +275,18 @@
     return div.innerHTML;
   }
 
-  function showResultsPopup(description, similarProducts, webhookError) {
+  function showResultsPopup(description, similarProducts, webhookError, opts) {
+    opts = opts || {};
+    const croppedBase64 = opts.croppedBase64 || '';
+    const bookmarkApiUrl = opts.bookmarkApiUrl || '';
+    const bookmarkToken = opts.bookmarkToken || '';
     injectStyles();
     const id = 'lens-results-popup';
     let popup = document.getElementById(id);
     if (popup) popup.remove();
     popup = document.createElement('div');
     popup.id = id;
+    const sourcePageUrl = window.location.href || '';
 
     function closePopup() {
       window.removeEventListener('mousemove', onHeaderMouseMove);
@@ -229,6 +297,28 @@
 
     function onEscape(e) {
       if (e.key === 'Escape') closePopup();
+    }
+
+    function onSave(product, searchQuery) {
+      chrome.runtime.sendMessage(
+        {
+          type: 'SAVE_ITEM',
+          payload: {
+            type: 'product',
+            title: product.name || 'Product',
+            description: description || '',
+            metadata: { search_query: searchQuery || product.search_query || '' },
+            source_url: sourcePageUrl || ('https://www.google.com/search?tbm=shop&q=' + encodeURIComponent((searchQuery || product.search_query || product.name || '').trim()))
+          }
+        },
+        (res) => {
+          if (res && res.success) {
+            showToast('Saved to your list.', 'success');
+          } else {
+            showToast(res?.error || 'Could not save.', 'error');
+          }
+        }
+      );
     }
 
     const backdrop = document.createElement('div');
@@ -251,6 +341,7 @@
     function onHeaderMouseDown(e) {
       if (e.target === closeBtn) return;
       const rect = popup.getBoundingClientRect();
+      popup.style.right = 'auto';
       popup.style.left = rect.left + 'px';
       popup.style.top = rect.top + 'px';
       popup.style.transform = 'none';
@@ -274,9 +365,58 @@
 
     const body = document.createElement('div');
     body.className = 'lens-results-body';
-    body.innerHTML = '<div class="lens-results-section">Products that look like your selection</div><div class="lens-results-list"></div>';
+    body.innerHTML = '<div class="lens-results-section">Products that look like your selection</div><div class="lens-results-toolbar"></div><div class="lens-results-list"></div>';
     const listEl = body.querySelector('.lens-results-list');
     const sectionEl = body.querySelector('.lens-results-section');
+    const toolbarEl = body.querySelector('.lens-results-toolbar');
+    const products = Array.isArray(similarProducts) ? similarProducts : [];
+    if (products.length > 0) {
+      const sortSelect = document.createElement('select');
+      sortSelect.className = 'lens-sort-select';
+      sortSelect.innerHTML = '<option value="default">Default order</option><option value="price-asc">Price: Low to High</option><option value="price-desc">Price: High to Low</option>';
+      sortSelect.addEventListener('change', () => {
+        const v = sortSelect.value;
+        let sorted = [...products];
+        if (v === 'price-asc') sorted = sortWithNoPriceLast(sorted, true);
+        else if (v === 'price-desc') sorted = sortWithNoPriceLast(sorted, false);
+        else sorted = sortWithNoPriceLast(sorted, true);
+        renderProducts(sorted);
+      });
+      toolbarEl.appendChild(sortSelect);
+    }
+    if (bookmarkApiUrl && bookmarkToken) {
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'lens-save-bookmark';
+      saveBtn.textContent = 'Save Bookmark';
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving…';
+        try {
+          const result = await new Promise((resolve) => {
+            chrome.runtime.sendMessage(
+              {
+                type: 'SAVE_BOOKMARK',
+                payload: {
+                  image: croppedBase64,
+                  description,
+                  similarProducts: products,
+                  sourceUrl: window.location.href
+                }
+              },
+              resolve
+            );
+          });
+          if (!result?.success) throw new Error(result?.error || 'Failed to save');
+          saveBtn.textContent = 'Saved!';
+          showToast('Bookmark saved', 'success');
+        } catch (e) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save Bookmark';
+          showToast(e.message || 'Failed to save', 'error');
+        }
+      });
+      toolbarEl.appendChild(saveBtn);
+    }
     if (webhookError) {
       const warn = document.createElement('p');
       warn.className = 'lens-no-products';
@@ -284,8 +424,29 @@
       warn.textContent = 'Backend: ' + webhookError;
       body.insertBefore(warn, sectionEl);
     }
-    if (Array.isArray(similarProducts) && similarProducts.length > 0) {
-      similarProducts.forEach((p) => {
+    function parsePriceNum(p) {
+      if (p.priceNum != null && typeof p.priceNum === 'number') return p.priceNum;
+      const s = (p.price || '').toString().replace(/[^0-9.]/g, '');
+      const n = parseFloat(s);
+      return isNaN(n) ? Infinity : n;
+    }
+    function sortWithNoPriceLast(arr, asc) {
+      const withPrice = arr.filter((p) => parsePriceNum(p) !== Infinity);
+      const noPrice = arr.filter((p) => parsePriceNum(p) === Infinity);
+      withPrice.sort((a, b) => (asc ? parsePriceNum(a) - parsePriceNum(b) : parsePriceNum(b) - parsePriceNum(a)));
+      noPrice.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      return [...withPrice, ...noPrice];
+    }
+    function renderProducts(sorted) {
+      listEl.innerHTML = '';
+      if (sorted.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'lens-no-products';
+        empty.textContent = 'No similar products found.';
+        listEl.appendChild(empty);
+        return;
+      }
+      sorted.forEach((p) => {
         const isRealProduct = p.link && !p.fallback;
         const card = document.createElement(isRealProduct ? 'a' : 'div');
         card.className = 'lens-product-card';
@@ -322,9 +483,9 @@
         const meta = document.createElement('div');
         meta.className = 'lens-product-meta';
         const parts = [];
-        if (p.price) parts.push(`<span class="lens-product-price">${escapeHtml(p.price)}</span>`);
+        parts.push(`<span class="lens-product-price">${escapeHtml(p.price || 'Price N/A')}</span>`);
         if (p.source) parts.push(`<span class="lens-product-source"> · ${escapeHtml(p.source)}</span>`);
-        meta.innerHTML = parts.join('') || '';
+        meta.innerHTML = parts.join('');
 
         info.append(name, meta);
         card.append(imgWrap, info);
@@ -353,12 +514,8 @@
 
         listEl.appendChild(card);
       });
-    } else {
-      const empty = document.createElement('p');
-      empty.className = 'lens-no-products';
-      empty.textContent = 'No similar products found.';
-      listEl.appendChild(empty);
     }
+    renderProducts(sortWithNoPriceLast([...products], true));
 
     popup.append(backdrop, header, body);
     document.body.appendChild(popup);
@@ -431,41 +588,57 @@
     const ctx = canvas.getContext('2d');
     let rect = { x: 0, y: 0, w: 0, h: 0 };
     let start = null;
+    let editMode = false;
+    let dragMode = null;
+    let confirmBar = null;
+    let handles = [];
 
     function setRect(from, to) {
       rect = {
         x: Math.min(from.x, to.x),
         y: Math.min(from.y, to.y),
-        w: Math.abs(to.x - from.x),
-        h: Math.abs(to.y - from.y)
+        w: Math.max(20, Math.abs(to.x - from.x)),
+        h: Math.max(20, Math.abs(to.y - from.y))
       };
     }
 
-    function onMouseDown(e) {
-      if (overlay.classList.contains('loading')) return;
-      start = { x: e.clientX, y: e.clientY };
-      rect = { x: e.clientX, y: e.clientY, w: 0, h: 0 };
-      drawSelection(ctx, rect);
+    function updateHandles() {
+      handles.forEach((h) => {
+        if (h.id === 'nw') { h.style.left = rect.x - 6 + 'px'; h.style.top = rect.y - 6 + 'px'; }
+        if (h.id === 'ne') { h.style.left = rect.x + rect.w - 6 + 'px'; h.style.top = rect.y - 6 + 'px'; }
+        if (h.id === 'sw') { h.style.left = rect.x - 6 + 'px'; h.style.top = rect.y + rect.h - 6 + 'px'; }
+        if (h.id === 'se') { h.style.left = rect.x + rect.w - 6 + 'px'; h.style.top = rect.y + rect.h - 6 + 'px'; }
+      });
     }
 
-    function onMouseMove(e) {
-      if (!start) return;
-      setRect(start, { x: e.clientX, y: e.clientY });
-      drawSelection(ctx, rect);
+    function enterEditMode() {
+      editMode = true;
+      confirmBar = document.createElement('div');
+      confirmBar.className = 'lens-confirm-bar';
+      const btnSearch = document.createElement('button');
+      btnSearch.className = 'lens-btn-search';
+      btnSearch.textContent = 'Search';
+      const btnCancel = document.createElement('button');
+      btnCancel.className = 'lens-btn-cancel';
+      btnCancel.textContent = 'Cancel';
+      btnSearch.addEventListener('click', () => runSearch());
+      btnCancel.addEventListener('click', removeOverlay);
+      confirmBar.append(btnSearch, btnCancel);
+      overlay.appendChild(confirmBar);
+
+      ['nw', 'ne', 'sw', 'se'].forEach((id) => {
+        const h = document.createElement('div');
+        h.className = 'lens-resize-handle';
+        h.id = id;
+        h.dataset.corner = id;
+        handles.push(h);
+        overlay.appendChild(h);
+      });
+      updateHandles();
     }
 
-    function onMouseUp(e) {
-      if (!start) return;
-      setRect(start, { x: e.clientX, y: e.clientY });
-      if (rect.w < 5 || rect.h < 5) {
-        start = null;
-        drawSelection(ctx, null);
-        return;
-      }
-      start = null;
+    function runSearch() {
       overlay.classList.add('loading');
-      drawSelection(ctx, rect);
-
       (async () => {
         try {
           const captureRes = await new Promise((resolve) => {
@@ -491,7 +664,12 @@
           showResultsPopup(
             analyzeRes.description,
             analyzeRes.similarProducts || [],
-            analyzeRes.webhookError || null
+            analyzeRes.webhookError || null,
+            {
+              croppedBase64: analyzeRes.croppedBase64,
+              bookmarkApiUrl: analyzeRes.bookmarkApiUrl,
+              bookmarkToken: analyzeRes.bookmarkToken
+            }
           );
           let msg = analyzeRes.sentToWebhook
             ? 'Analyzed and sent to your backend.'
@@ -510,6 +688,96 @@
       })();
     }
 
+    function onEditMouseDown(e) {
+      if (overlay.classList.contains('loading')) return;
+      if (e.target.tagName === 'BUTTON' || e.target.closest('.lens-confirm-bar')) return;
+      const corner = e.target.dataset?.corner;
+      const inBox = e.clientX >= rect.x && e.clientX <= rect.x + rect.w &&
+        e.clientY >= rect.y && e.clientY <= rect.y + rect.h &&
+        !corner;
+      if (corner) {
+        dragMode = { type: 'resize', corner };
+      } else if (inBox) {
+        dragMode = { type: 'move', startX: e.clientX - rect.x, startY: e.clientY - rect.y };
+      }
+    }
+
+    function onEditMouseMove(e) {
+      if (!dragMode) return;
+      if (dragMode.type === 'move') {
+        rect.x = Math.max(0, Math.min(window.innerWidth - rect.w, e.clientX - dragMode.startX));
+        rect.y = Math.max(0, Math.min(window.innerHeight - rect.h, e.clientY - dragMode.startY));
+      } else {
+        const { corner } = dragMode;
+        const mx = e.clientX, my = e.clientY;
+        if (corner === 'nw') {
+          rect.w = rect.x + rect.w - mx;
+          rect.h = rect.y + rect.h - my;
+          rect.x = mx;
+          rect.y = my;
+        } else if (corner === 'ne') {
+          rect.w = mx - rect.x;
+          rect.h = rect.y + rect.h - my;
+          rect.y = my;
+        } else if (corner === 'sw') {
+          rect.w = rect.x + rect.w - mx;
+          rect.h = my - rect.y;
+          rect.x = mx;
+        } else if (corner === 'se') {
+          rect.w = mx - rect.x;
+          rect.h = my - rect.y;
+        }
+        if (rect.w < 20) rect.w = 20;
+        if (rect.h < 20) rect.h = 20;
+        if (rect.x < 0) { rect.w += rect.x; rect.x = 0; }
+        if (rect.y < 0) { rect.h += rect.y; rect.y = 0; }
+      }
+      drawSelection(ctx, rect);
+      updateHandles();
+    }
+
+    function onEditMouseUp() {
+      dragMode = null;
+    }
+
+    function onMouseDown(e) {
+      if (overlay.classList.contains('loading')) return;
+      if (editMode) {
+        onEditMouseDown(e);
+        return;
+      }
+      start = { x: e.clientX, y: e.clientY };
+      rect = { x: e.clientX, y: e.clientY, w: 0, h: 0 };
+      drawSelection(ctx, rect);
+    }
+
+    function onMouseMove(e) {
+      if (editMode) {
+        onEditMouseMove(e);
+        return;
+      }
+      if (!start) return;
+      setRect(start, { x: e.clientX, y: e.clientY });
+      drawSelection(ctx, rect);
+    }
+
+    function onMouseUp(e) {
+      if (editMode) {
+        onEditMouseUp(e);
+        return;
+      }
+      if (!start) return;
+      setRect(start, { x: e.clientX, y: e.clientY });
+      if (rect.w < 5 || rect.h < 5) {
+        start = null;
+        drawSelection(ctx, null);
+        return;
+      }
+      start = null;
+      enterEditMode();
+      drawSelection(ctx, rect);
+    }
+
     function onKeyDown(e) {
       if (e.key === 'Escape') removeOverlay();
     }
@@ -519,6 +787,8 @@
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
       window.removeEventListener('keydown', onKeyDown);
+      if (confirmBar) confirmBar.remove();
+      handles.forEach((h) => h.remove());
       const el = document.getElementById(OVERLAY_ID);
       if (el) el.remove();
       const b = document.getElementById('lens-video-bubble');
@@ -571,9 +841,7 @@
       bubble.style.top = (dragStart.top + dy) + 'px';
     });
 
-    window.addEventListener('mouseup', () => {
-      dragStart = null;
-    });
+    window.addEventListener('mouseup', () => { dragStart = null; });
 
     bubble.addEventListener('click', (e) => {
       if (didDrag) return;
@@ -594,21 +862,45 @@
     bubble.classList.add('visible');
   }
 
+  function isVideoSite() {
+    const host = window.location.hostname.toLowerCase();
+    return /youtube\.com|youtu\.be|vimeo\.com|twitch\.tv|dailymotion\.com|bilibili\.com|facebook\.com\/watch|instagram\.com/i.test(host);
+  }
+
+  function findVideosIncludingShadow(root, found) {
+    try {
+      root.querySelectorAll('video').forEach((v) => found.push(v));
+      root.querySelectorAll('*').forEach((node) => {
+        if (node.shadowRoot) findVideosIncludingShadow(node.shadowRoot, found);
+      });
+    } catch (_) {}
+  }
+
   function observeVideoPlay() {
-    function attachPlayListener(video) {
+    const found = [];
+    findVideosIncludingShadow(document.documentElement, found);
+    found.forEach((video) => {
       if (video._lensPlayListener) return;
       video._lensPlayListener = true;
       video.addEventListener('play', () => showVideoBubble());
-    }
-    document.querySelectorAll('video').forEach(attachPlayListener);
-    document.querySelectorAll('video').forEach((v) => { if (!v.paused) showVideoBubble(); });
+    });
+    found.forEach((v) => { if (!v.paused) showVideoBubble(); });
   }
 
   function initVideoBubble() {
     injectStyles();
     observeVideoPlay();
+    if (isVideoSite()) {
+      setTimeout(showVideoBubble, 1500);
+    }
     const mo = new MutationObserver(() => observeVideoPlay());
-    mo.observe(document.body, { childList: true, subtree: true });
+    if (document.body) {
+      mo.observe(document.body, { childList: true, subtree: true });
+    } else {
+      document.addEventListener('DOMContentLoaded', () => {
+        mo.observe(document.body, { childList: true, subtree: true });
+      });
+    }
   }
 
   if (document.readyState === 'loading') {

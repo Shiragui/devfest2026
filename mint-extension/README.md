@@ -16,11 +16,12 @@ A Chrome Extension that mimics Google Lens: select any area on a webpage, analyz
    - Enable “Developer mode”
    - Click “Load unpacked” and select the `chrome-lens-extension` folder
 
-2. **Configure options**
-   - Click the extension icon → “Settings (API key & webhook)”, or right‑click the icon → Options
-   - Choose **Vision provider**: **Dedalus Labs** or **Google Gemini**
-   - Enter the API key for your chosen provider (Dedalus key from [Dedalus Dashboard](https://www.dedaluslabs.ai/dashboard/api-keys), Gemini key from [Google AI Studio](https://aistudio.google.com/apikey))
-   - Enter your **Webhook URL** (optional). The extension will POST JSON:
+2. **Configure API keys**
+   - Copy `.env.example` to `.env` and add your values.
+   - Run `node scripts/build-config.js` to generate `config.js` from `.env`.
+   - Both `.env` and `config.js` are gitignored for security.
+   - Keys: **VISION_PROVIDER** (`gemini` or `dedalus`), **DEDALUS_API_KEY**, **GEMINI_API_KEY**, **SERPAPI_KEY**, **IMGBB_KEY**, **WEBHOOK_URL**, **WEBHOOK_API_KEY**, **BOOKMARK_API_URL**, **BOOKMARK_TOKEN**
+   - **webhookUrl**: optional. The extension will POST JSON:
      ```json
      {
        "image": "<base64 string>",
@@ -67,5 +68,5 @@ And add an `"icons"` key with the same paths.
 
 - **activeTab**: Capture the current tab and inject the content script.
 - **scripting**: Inject the snipping content script.
-- **storage**: Store API key and webhook URL in sync storage.
+- **.env**: API keys (gitignored). Run `node scripts/build-config.js` to generate `config.js`.
 - **host_permissions**: `https://api.dedaluslabs.ai/*` and `https://generativelanguage.googleapis.com/*` for vision; `<all_urls>` so the webhook can be any HTTPS URL.

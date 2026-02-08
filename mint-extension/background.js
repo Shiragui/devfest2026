@@ -3,8 +3,24 @@
  * Handles tab capture, Dedalus Labs / Gemini Vision API, and webhook POST.
  */
 
+importScripts('config.js');
+
 const DEDALUS_VISION_MODEL = 'google/gemini-2.0-flash';
 const GEMINI_MODEL = 'gemini-2.5-flash';
+
+function getConfig() {
+  return {
+    visionProvider: (typeof CONFIG !== 'undefined' && CONFIG.visionProvider) || 'dedalus',
+    dedalusApiKey: (typeof CONFIG !== 'undefined' && CONFIG.dedalusApiKey) || '',
+    geminiApiKey: (typeof CONFIG !== 'undefined' && CONFIG.geminiApiKey) || '',
+    webhookUrl: (typeof CONFIG !== 'undefined' && CONFIG.webhookUrl) || '',
+    webhookApiKey: (typeof CONFIG !== 'undefined' && CONFIG.webhookApiKey) || '',
+    bookmarkApiUrl: (typeof CONFIG !== 'undefined' && CONFIG.bookmarkApiUrl) || '',
+    bookmarkToken: (typeof CONFIG !== 'undefined' && CONFIG.bookmarkToken) || '',
+    serpapiKey: (typeof CONFIG !== 'undefined' && CONFIG.serpapiKey) || '',
+    imgbbApiKey: (typeof CONFIG !== 'undefined' && CONFIG.imgbbApiKey) || ''
+  };
+}
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'CAPTURE_TAB') {
@@ -16,6 +32,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'ANALYZE_AND_SEND') {
     handleAnalyzeAndSend(message.payload)
       .then((result) => sendResponse({ success: true, ...result }))
+      .catch((err) => sendResponse({ success: false, error: err.message }));
+    return true;
+  }
+  if (message.type === 'SAVE_BOOKMARK') {
+    handleSaveBookmark(message.payload)
+      .then(() => sendResponse({ success: true }))
       .catch((err) => sendResponse({ success: false, error: err.message }));
     return true;
   }
@@ -31,31 +53,41 @@ async function handleCaptureTab(tabId) {
   }
 }
 
-async function getStoredConfig() {
-  const out = await chrome.storage.sync.get([
-    'visionProvider',
-    'dedalusApiKey',
-    'geminiApiKey',
-    'webhookUrl',
-    'serpapiKey',
-    'imgbbApiKey'
-  ]);
-  return {
-    visionProvider: out.visionProvider || 'dedalus',
-    dedalusApiKey: out.dedalusApiKey || '',
-    geminiApiKey: out.geminiApiKey || '',
-    webhookUrl: out.webhookUrl || '',
-    serpapiKey: out.serpapiKey || '',
-    imgbbApiKey: out.imgbbApiKey || ''
-  };
-}
-
 async function handleAnalyzeAndSend(payload) {
-  const { croppedBase64, mimeType } = payload;
+  const { croppedBase64, mimeType, intent = 'product' } = payload;
   if (!croppedBase64) throw new Error('No image data');
 
-  const config = await getStoredConfig();
+  const config = getConfig();
   const provider = config.visionProvider || 'dedalus';
+
+  // Prefer backend when configured
+  if (config.backendUrl) {
+    const base = config.backendUrl.replace(/\/$/, '');
+    const url = base + '/analyze';
+    const headers = { 'Content-Type': 'application/json' };
+    if (config.authToken) headers['Authorization'] = 'Bearer ' + config.authToken;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        image: croppedBase64,
+        mimeType: mimeType || 'image/png',
+        intent
+      })
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      if (res.status === 401) throw new Error('Invalid or missing auth token. Check extension options.');
+      throw new Error(res.status + ' ' + (errText || res.statusText));
+    }
+    const data = await res.json();
+    return {
+      description: data.description || '',
+      similarProducts: data.similarProducts || data.results || [],
+      sentToWebhook: false,
+      webhookError: null
+    };
+  }
 
   const apiKey =
     provider === 'gemini'
@@ -64,7 +96,7 @@ async function handleAnalyzeAndSend(payload) {
 
   if (!apiKey) {
     const name = provider === 'gemini' ? 'Gemini' : 'Dedalus Labs';
-    throw new Error(`${name} API key is not set. Open extension options to add it.`);
+    throw new Error(`${name} API key is not set. Edit config.js to add it.`);
   }
 
   let description;
@@ -76,7 +108,7 @@ async function handleAnalyzeAndSend(payload) {
     }
   } catch (err) {
     if (err.message && err.message.includes('401')) {
-      throw new Error('Invalid API key. Check your key in extension options.');
+      throw new Error('Invalid API key. Check your key in config.js.');
     }
     if (err.message && (err.message.includes('403') || err.message.includes('429'))) {
       throw new Error(err.message);
@@ -95,7 +127,7 @@ async function handleAnalyzeAndSend(payload) {
         mimeType: mimeType || 'image/png',
         description,
         timestamp: new Date().toISOString()
-      });
+      }, config.webhookApiKey?.trim());
     } catch (err) {
       webhookError = formatWebhookError(err);
     }
@@ -116,12 +148,45 @@ async function handleAnalyzeAndSend(payload) {
     // Non-fatal: still return description
   }
 
+  const stored = await chrome.storage.local.get(['bookmarkApiUrl', 'bookmarkToken']);
+  const bookmarkApiUrl = stored.bookmarkApiUrl?.trim() || config.bookmarkApiUrl?.trim() || '';
+  const bookmarkToken = stored.bookmarkToken?.trim() || config.bookmarkToken?.trim() || '';
+
   return {
     description,
     sentToWebhook: !webhookError && !!config.webhookUrl?.trim(),
     webhookError,
-    similarProducts
+    similarProducts,
+    croppedBase64,
+    bookmarkApiUrl,
+    bookmarkToken
   };
+}
+
+async function handleSaveItem(payload) {
+  const config = await getStoredConfig();
+  if (!config.backendUrl) throw new Error('Backend URL is not set. Open extension options.');
+  const base = config.backendUrl.replace(/\/$/, '');
+  const url = base + '/items';
+  const headers = { 'Content-Type': 'application/json' };
+  if (config.authToken) headers['Authorization'] = 'Bearer ' + config.authToken;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      type: payload.type || 'product',
+      title: payload.title || '',
+      description: payload.description || '',
+      metadata: payload.metadata || {},
+      source_url: payload.source_url || ''
+    })
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    if (res.status === 401) throw new Error('Invalid or missing auth token.');
+    throw new Error(res.status + ' ' + (errText || res.statusText));
+  }
+  return await res.json();
 }
 
 function formatWebhookError(err) {
@@ -287,10 +352,33 @@ async function uploadImageToImgBB(apiKey, base64Image) {
   return url;
 }
 
+function extractPriceFromText(text) {
+  if (!text || typeof text !== 'string') return { display: '', num: null };
+  const match = text.match(/[\$€£¥₹]\s*[\d,]+(?:\.\d{2})?|[\d,]+(?:\.\d{2})?\s*[\$€£¥₹]|USD\s*[\d,]+(?:\.\d{2})?/i);
+  if (match) {
+    const s = match[0].replace(/[^\d.]/g, '');
+    const num = parseFloat(s);
+    return { display: match[0].trim(), num: isNaN(num) ? null : num };
+  }
+  return { display: '', num: null };
+}
+
+function parseProductPrice(m) {
+  const priceObj = m.price;
+  let priceDisplay = priceObj?.value ?? (typeof priceObj === 'string' ? priceObj : '');
+  let priceNum = priceObj?.extracted_value ?? (typeof priceObj === 'number' ? priceObj : null);
+  if (!priceDisplay && !priceNum && m.title) {
+    const fallback = extractPriceFromText(m.title);
+    priceDisplay = fallback.display;
+    priceNum = fallback.num;
+  }
+  return { priceDisplay: priceDisplay || '', priceNum };
+}
+
 async function fetchVisuallySimilarProducts(serpapiKey, imgbbApiKey, base64Image, mimeType) {
   const imageUrl = await uploadImageToImgBB(imgbbApiKey, base64Image);
 
-  // Try products first (shopping listings), then visual_matches (any visually similar)
+  // Try products first (shopping listings with more prices), then visual_matches
   for (const searchType of ['products', 'visual_matches']) {
     const params = new URLSearchParams({
       engine: 'google_lens',
@@ -301,16 +389,20 @@ async function fetchVisuallySimilarProducts(serpapiKey, imgbbApiKey, base64Image
     const res = await fetch('https://serpapi.com/search.json?' + params.toString());
     if (!res.ok) throw new Error(res.status + ' ' + (await res.text()));
     const data = await res.json();
-    const matches = data.visual_matches || [];
+    const matches = data.visual_matches || data.shopping_results || [];
 
     if (matches.length > 0) {
-      return matches.slice(0, 8).map((m) => ({
-        name: m.title || 'Similar product',
-        price: m.price?.value || m.price || '',
-        link: m.link || '',
-        image: m.thumbnail || m.image || '',
-        source: m.source || ''
-      })).filter((p) => p.link);
+      return matches.slice(0, 8).map((m) => {
+        const { priceDisplay, priceNum } = parseProductPrice(m);
+        return {
+          name: m.title || 'Similar product',
+          price: priceDisplay,
+          priceNum: priceNum,
+          link: m.link || '',
+          image: m.thumbnail || m.image || '',
+          source: m.source || ''
+        };
+      }).filter((p) => p.link);
     }
   }
   return [];
@@ -369,10 +461,39 @@ async function callGeminiText(apiKey, prompt) {
   return typeof text === 'string' ? text.trim() : '';
 }
 
-async function postToWebhook(url, payload) {
-  const res = await fetch(url, {
+async function postToWebhook(url, payload, apiKey) {
+  const fullUrl = url.startsWith('http://') || url.startsWith('https://') ? url : 'https://' + url;
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) headers['X-API-Key'] = apiKey;
+  const res = await fetch(fullUrl, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(res.status + ' ' + (errText || res.statusText));
+  }
+}
+
+/**
+ * Save bookmark via backend API. Runs in extension context to avoid CORS.
+ * Uses chrome.storage (from extension login) first, falls back to config.
+ */
+async function handleSaveBookmark(payload) {
+  const stored = await chrome.storage.local.get(['bookmarkApiUrl', 'bookmarkToken']);
+  const config = getConfig();
+  const baseUrl = stored.bookmarkApiUrl?.trim() || config.bookmarkApiUrl?.trim();
+  const token = stored.bookmarkToken?.trim() || config.bookmarkToken?.trim();
+  if (!baseUrl || !token) throw new Error('Bookmark API not configured. Log in via extension options (right-click icon → Options).');
+  const url = baseUrl.replace(/\/$/, '');
+  const bookmarkUrl = url.endsWith('/api/bookmarks') ? url : url + '/api/bookmarks';
+  const res = await fetch(bookmarkUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + token
+    },
     body: JSON.stringify(payload)
   });
   if (!res.ok) {
