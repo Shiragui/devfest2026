@@ -1,84 +1,77 @@
-const providerSelect = document.getElementById('vision-provider');
-const dedalusInput = document.getElementById('dedalus-api-key');
-const geminiInput = document.getElementById('gemini-api-key');
-const backendUrlInput = document.getElementById('backend-url');
-const authTokenInput = document.getElementById('auth-token');
-const webhookInput = document.getElementById('webhook-url');
-const saveBtn = document.getElementById('save');
-const statusEl = document.getElementById('options-status');
-const labelDedalus = document.getElementById('label-dedalus');
-const labelGemini = document.getElementById('label-gemini');
+// Options page – config is in config.js
+// Bookmark login: store JWT in chrome.storage for saving bookmarks
 
-function showStatus(text, type = 'success') {
-  statusEl.textContent = text;
-  statusEl.className = 'status ' + type;
+const STORAGE_KEYS = { bookmarkApiUrl: 'bookmarkApiUrl', bookmarkToken: 'bookmarkToken' };
+
+async function loadStored() {
+  const data = await chrome.storage.local.get([STORAGE_KEYS.bookmarkApiUrl, STORAGE_KEYS.bookmarkToken]);
+  const urlInput = document.getElementById('bookmarkApiUrl');
+  if (urlInput) urlInput.value = data.bookmarkApiUrl || '';
+  updateStatus();
 }
 
-function updateKeyLabels() {
-  const p = providerSelect.value;
-  labelDedalus.style.opacity = p === 'dedalus' ? '1' : '0.6';
-  labelGemini.style.opacity = p === 'gemini' ? '1' : '0.6';
-}
-
-async function load() {
-  const {
-    visionProvider = 'dedalus',
-    dedalusApiKey = '',
-    geminiApiKey = '',
-    backendUrl = '',
-    authToken = '',
-    webhookUrl = ''
-  } = await chrome.storage.sync.get([
-    'visionProvider',
-    'dedalusApiKey',
-    'geminiApiKey',
-    'backendUrl',
-    'authToken',
-    'webhookUrl'
-  ]);
-  providerSelect.value = visionProvider;
-  dedalusInput.value = dedalusApiKey;
-  geminiInput.value = geminiApiKey;
-  backendUrlInput.value = backendUrl;
-  authTokenInput.value = authToken;
-  webhookInput.value = webhookUrl;
-  updateKeyLabels();
-}
-
-saveBtn.addEventListener('click', async () => {
-  const visionProvider = providerSelect.value;
-  const dedalusApiKey = dedalusInput.value.trim();
-  const geminiApiKey = geminiInput.value.trim();
-  const backendUrl = backendUrlInput.value.trim();
-  const authToken = authTokenInput.value.trim();
-  const webhookUrl = webhookInput.value.trim();
-
-  const useBackend = !!backendUrl;
-  const activeKey = visionProvider === 'gemini' ? geminiApiKey : dedalusApiKey;
-  if (!useBackend && !activeKey) {
-    const name = visionProvider === 'gemini' ? 'Gemini' : 'Dedalus Labs';
-    showStatus('Either set Backend URL or enter the ' + name + ' API key.', 'error');
-    return;
+async function updateStatus() {
+  const data = await chrome.storage.local.get([STORAGE_KEYS.bookmarkToken]);
+  const statusEl = document.getElementById('bookmarkStatus');
+  if (!statusEl) return;
+  if (data.bookmarkToken) {
+    statusEl.textContent = 'Logged in. You can save bookmarks from the extension.';
+    statusEl.className = 'status success';
+  } else {
+    statusEl.textContent = 'Not logged in. Log in to save bookmarks.';
+    statusEl.className = 'status';
   }
+}
 
-  saveBtn.disabled = true;
-  try {
-    await chrome.storage.sync.set({
-      visionProvider,
-      dedalusApiKey,
-      geminiApiKey,
-      backendUrl,
-      authToken,
-      webhookUrl
-    });
-    showStatus('Settings saved.');
-  } catch (e) {
-    showStatus('Failed to save: ' + (e.message || 'unknown'), 'error');
-  } finally {
-    saveBtn.disabled = false;
-  }
+document.addEventListener('DOMContentLoaded', () => {
+  loadStored();
+
+  document.getElementById('bookmarkLoginBtn')?.addEventListener('click', async () => {
+    const baseUrl = document.getElementById('bookmarkApiUrl')?.value?.trim();
+    const username = document.getElementById('bookmarkUsername')?.value?.trim();
+    const password = document.getElementById('bookmarkPassword')?.value;
+
+    const statusEl = document.getElementById('bookmarkStatus');
+    if (!baseUrl || !username || !password) {
+      statusEl.textContent = 'Please fill in all fields.';
+      statusEl.className = 'status error';
+      return;
+    }
+
+    const url = baseUrl.replace(/\/$/, '') + '/auth/login';
+    statusEl.textContent = 'Logging in…';
+    statusEl.className = 'status';
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ username, password }).toString()
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || 'Login failed');
+      }
+
+      await chrome.storage.local.set({
+        [STORAGE_KEYS.bookmarkApiUrl]: baseUrl,
+        [STORAGE_KEYS.bookmarkToken]: data.access_token
+      });
+      statusEl.textContent = 'Logged in successfully.';
+      statusEl.className = 'status success';
+      document.getElementById('bookmarkPassword').value = '';
+    } catch (e) {
+      statusEl.textContent = e.message || 'Login failed';
+      statusEl.className = 'status error';
+    }
+  });
+
+  document.getElementById('bookmarkLogoutBtn')?.addEventListener('click', async () => {
+    await chrome.storage.local.remove([STORAGE_KEYS.bookmarkApiUrl, STORAGE_KEYS.bookmarkToken]);
+    document.getElementById('bookmarkApiUrl').value = '';
+    document.getElementById('bookmarkUsername').value = '';
+    document.getElementById('bookmarkPassword').value = '';
+    updateStatus();
+  });
 });
-
-providerSelect.addEventListener('change', updateKeyLabels);
-
-load();
