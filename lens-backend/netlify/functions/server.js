@@ -13,6 +13,7 @@ import {
   deleteBookmark,
   getBoards,
   createBoard,
+  deleteBoard,
   updateBookmarkBoard,
   getPublicBoards,
   getBoardBookmarksPublic,
@@ -136,6 +137,20 @@ app.post('/api/boards', requireToken, async (req, res) => {
     const { name } = req.body || {}
     const board = await createBoard(user.id, name)
     return res.json(board)
+  } catch (err) {
+    return res.status(500).json({ detail: err.message })
+  }
+})
+
+app.delete('/api/boards/:boardId', requireToken, async (req, res) => {
+  try {
+    const user = await getUserByUsername(req.auth.sub)
+    if (!user) return res.status(401).json({ detail: 'User not found' })
+    const result = await deleteBoard(req.params.boardId, user.id)
+    if (!result.ok) {
+      return res.status(400).json({ detail: result.reason === 'cannot_delete_default' ? 'Cannot delete your default Saved board' : 'Board not found' })
+    }
+    return res.json({ status: 'deleted' })
   } catch (err) {
     return res.status(500).json({ detail: err.message })
   }

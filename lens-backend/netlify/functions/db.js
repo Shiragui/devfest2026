@@ -197,13 +197,25 @@ export async function deleteBookmark(bookmarkId, userId) {
   return result.length > 0
 }
 
+export async function deleteBoard(boardId, userId) {
+  await ensureTables()
+  const defaultBoardId = await getOrCreateDefaultBoard(userId)
+  if (boardId === defaultBoardId) return { ok: false, reason: 'cannot_delete_default' }
+  await sql`UPDATE bookmarks SET board_id = ${defaultBoardId} WHERE board_id = ${boardId}`
+  const result = await sql`
+    DELETE FROM boards WHERE id = ${boardId} AND user_id = ${userId} RETURNING id
+  `
+  return { ok: result.length > 0 }
+}
+
 /**
- * Public feed: all boards from all users with owner username.
+ * Public feed: all boards from all users with owner username and first bookmark image.
  */
 export async function getPublicBoards() {
   await ensureTables()
   const rows = await sql`
-    SELECT b.id, b.name, b.created_at, u.username as owner_name
+    SELECT b.id, b.name, b.created_at, u.username as owner_name,
+      (SELECT image_base64 FROM bookmarks WHERE board_id = b.id ORDER BY created_at DESC LIMIT 1) as preview_image
     FROM boards b
     JOIN users u ON b.user_id = u.id
     ORDER BY b.created_at DESC
@@ -213,6 +225,7 @@ export async function getPublicBoards() {
     name: r.name,
     owner_name: r.owner_name,
     created_at: r.created_at,
+    preview_image: r.preview_image || null,
   }))
 }
 

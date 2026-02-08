@@ -115,21 +115,44 @@ function renderBoards() {
   const list = document.getElementById('boards-list');
   const createForm = document.getElementById('create-board-form');
   const newBoardBtn = document.getElementById('btn-new-board');
+  const defaultBoardId = state.boards[0]?.id;
   list.innerHTML = '';
   state.boards.forEach((b) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'board-tab' + (state.selectedBoardId === b.id ? ' active' : '');
-    btn.textContent = b.name;
-    btn.dataset.boardId = b.id;
-    btn.addEventListener('click', () => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'board-tab-wrapper';
+    const isDefault = b.id === defaultBoardId;
+    wrapper.innerHTML = `
+      <button type="button" class="board-tab ${state.selectedBoardId === b.id ? 'active' : ''}" data-board-id="${escapeHtml(b.id)}">
+        ${escapeHtml(b.name)}
+      </button>
+      ${isDefault ? '' : `<button type="button" class="board-delete-btn" title="Delete board" aria-label="Delete board" data-board-id="${escapeHtml(b.id)}">×</button>`}
+    `;
+    wrapper.querySelector('.board-tab').addEventListener('click', (e) => {
+      if (e.target.classList.contains('board-delete-btn')) return;
       state.selectedBoardId = b.id;
       renderBoards();
       renderBookmarks();
     });
-    list.appendChild(btn);
+    const delBtn = wrapper.querySelector('.board-delete-btn');
+    if (delBtn) {
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteBoard(b.id);
+      });
+    }
+    list.appendChild(wrapper);
   });
   newBoardBtn.classList.toggle('hidden', !createForm.classList.contains('hidden'));
+}
+
+async function deleteBoard(boardId) {
+  if (!confirm('Delete this board? Its items will move to your Saved board.')) return;
+  try {
+    await fetchApi(`/api/boards/${boardId}`, { method: 'DELETE' });
+    loadAll();
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 function renderBookmark(b, isFeed = false) {
@@ -293,9 +316,15 @@ async function loadFeed() {
     boards.forEach((board) => {
       const card = document.createElement('div');
       card.className = 'feed-board-card';
+      const thumb = board.preview_image
+        ? `<img class="feed-board-card-thumb" src="data:image/png;base64,${board.preview_image}" alt="">`
+        : '<div class="feed-board-card-placeholder">🛒</div>';
       card.innerHTML = `
-        <h3 class="feed-board-card-title">${escapeHtml(board.name)}</h3>
-        <p class="feed-board-card-owner">by ${escapeHtml(board.owner_name)}</p>
+        <div class="feed-board-card-image">${thumb}</div>
+        <div class="feed-board-card-info">
+          <h3 class="feed-board-card-title">${escapeHtml(board.name)}</h3>
+          <p class="feed-board-card-owner">by ${escapeHtml(board.owner_name)}</p>
+        </div>
       `;
       card.addEventListener('click', () => openFeedBoard(board.id));
       list.appendChild(card);
