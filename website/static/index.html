@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mintgreen</title>
+  <style>
+    /* Critical: ensure only one view shows - works even if styles.css fails to load */
+    .view { min-height: 100vh; }
+    .view.hidden { display: none !important; }
+    .view:not(.hidden) { display: flex; flex-direction: column; }
+    #login-view:not(.hidden), #signup-view:not(.hidden) { align-items: center; justify-content: center; padding: 24px; }
+    .error.hidden { display: none !important; }
+    .modal.hidden { display: none !important; }
+  </style>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="app">
+    <div id="login-view" class="view auth-page">
+      <div class="auth-layout">
+        <aside class="auth-hero">
+          <div class="hero-content">
+            <img src="/logo.png" alt="Mintgreen" class="hero-logo">
+            <h1>MINT</h1>
+            <p>Capture products from any page. Find similar items. Save your favorites.</p>
+          </div>
+        </aside>
+        <section class="auth-form-section">
+          <div class="auth-form-card">
+            <h2>Welcome back</h2>
+            <p class="form-hint">Log in to view your bookmarks</p>
+            <form id="login-form">
+              <label for="login-username">Username</label>
+              <input type="text" id="login-username" placeholder="Enter your username" required autocomplete="username">
+              <label for="login-password">Password</label>
+              <input type="password" id="login-password" placeholder="Enter your password" required autocomplete="current-password">
+              <button type="submit" class="btn-primary">Log in</button>
+            </form>
+            <p id="login-error" class="error hidden"></p>
+            <p class="form-footer">Don't have an account? <a href="#" id="link-to-signup">Sign up</a></p>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div id="signup-view" class="view auth-page hidden">
+      <div class="auth-layout">
+        <aside class="auth-hero">
+          <div class="hero-content">
+            <img src="/logo.png" alt="Mintgreen" class="hero-logo">
+            <h1>MINT</h1>
+            <p>Capture products from any page. Find similar items. Save your favorites.</p>
+          </div>
+        </aside>
+        <section class="auth-form-section">
+          <div class="auth-form-card">
+            <h2>Create account</h2>
+            <p class="form-hint">Join to save your visual search bookmarks</p>
+            <form id="signup-form">
+              <label for="signup-username">Username</label>
+              <input type="text" id="signup-username" placeholder="Choose a username" required autocomplete="username">
+              <label for="signup-password">Password</label>
+              <input type="password" id="signup-password" placeholder="At least 4 characters" required autocomplete="new-password" minlength="4">
+              <button type="submit" class="btn-primary">Sign up</button>
+            </form>
+            <p id="signup-error" class="error hidden"></p>
+            <p class="form-footer">Already have an account? <a href="#" id="link-to-login">Log in</a></p>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div id="dashboard-view" class="view hidden">
+      <header class="dashboard-header">
+        <div class="header-brand">
+          <img src="/logo.png" alt="Mintgreen" class="header-logo-img">
+          <h1 class="header-title">MINT</h1>
+        </div>
+        <nav class="main-nav">
+          <a href="#" id="nav-profile" class="nav-link active">Profile</a>
+          <a href="#" id="nav-feed" class="nav-link">Feed</a>
+          <a href="#" id="nav-liked" class="nav-link">Liked</a>
+        </nav>
+        <div class="header-actions">
+          <button id="btn-logout" class="btn-ghost">Log out</button>
+        </div>
+      </header>
+      <main class="dashboard-main" id="profile-main">
+        <aside class="boards-sidebar">
+          <h2 class="boards-title">Boards</h2>
+          <div id="boards-list"></div>
+          <div id="create-board-form" class="create-board-form hidden">
+            <input type="text" id="new-board-name" placeholder="Board name" class="input">
+            <div class="create-board-actions">
+              <button type="button" id="btn-create-board" class="btn-primary">Create</button>
+              <button type="button" id="btn-cancel-board" class="btn-ghost">Cancel</button>
+            </div>
+          </div>
+          <button type="button" id="btn-new-board" class="board-tab add-board">+ New board</button>
+        </aside>
+        <section class="dashboard-content">
+          <div id="empty-state" class="empty-state hidden">
+            <div class="empty-icon">📦</div>
+            <h3>No bookmarks yet</h3>
+            <p>Use the MINT extension to capture products on any page and save them to your boards.</p>
+          </div>
+          <div id="bookmarks-list" class="bookmarks-grid"></div>
+        </section>
+      </main>
+      <main class="feed-main hidden" id="feed-main">
+        <div class="feed-search-bar">
+          <input type="text" id="feed-search-input" placeholder="Search boards by name..." class="feed-search-input">
+        </div>
+        <div id="feed-boards-list" class="feed-boards-grid"></div>
+        <div id="feed-board-view" class="feed-board-view hidden">
+          <button type="button" id="feed-back-btn" class="btn-ghost">← Back to feed</button>
+          <h2 id="feed-board-title"></h2>
+          <p id="feed-board-owner" class="feed-board-owner"></p>
+          <div id="feed-board-bookmarks" class="bookmarks-grid feed-bookmarks"></div>
+        </div>
+        <div id="feed-empty" class="empty-state hidden">
+          <div class="empty-icon">📋</div>
+          <h3>No boards yet</h3>
+          <p>Be the first to create a board and share your finds!</p>
+        </div>
+      </main>
+      <main class="liked-main hidden" id="liked-main">
+        <div id="liked-boards-list" class="feed-boards-grid"></div>
+        <div id="liked-empty" class="empty-state hidden">
+          <div class="empty-icon">❤️</div>
+          <h3>No liked boards yet</h3>
+          <p>Like boards from the Feed to save them here.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="detail-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <button class="modal-close" aria-label="Close">&times;</button>
+      <div id="detail-body"></div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
